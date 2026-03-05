@@ -43,6 +43,7 @@ class Config:
     google_token_file: Path
     log_level: str
     max_emails_per_run: int
+    max_email_age_hours: int
     include_read_inbox_emails: bool
     inbox_subject_contains: str
 
@@ -118,6 +119,7 @@ def load_config() -> Config:
     google_token_file = PROJECT_ROOT / os.getenv("GOOGLE_TOKEN_FILE", "token.json")
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
     max_emails_per_run = _as_int(os.getenv("MAX_EMAILS_PER_RUN", "10"), default=10)
+    max_email_age_hours = max(0, _as_int(os.getenv("MAX_EMAIL_AGE_HOURS", "12"), default=12))
     include_read_inbox_emails = _as_bool(
         os.getenv("INCLUDE_READ_INBOX_EMAILS", "false"),
         default=False,
@@ -150,6 +152,7 @@ def load_config() -> Config:
         google_token_file=google_token_file,
         log_level=log_level,
         max_emails_per_run=max_emails_per_run,
+        max_email_age_hours=max_email_age_hours,
         include_read_inbox_emails=include_read_inbox_emails,
         inbox_subject_contains=inbox_subject_contains,
     )

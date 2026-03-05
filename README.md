@@ -10,7 +10,7 @@ Python email agent that triages unread Gmail messages, applies productivity labe
 
 Each run (`python -m app.main`) does this:
 
-1. Reads inbox emails (unread-only by default; can include read emails for backfill/testing).
+1. Reads inbox emails (unread-only by default; last 12 hours by default; can include read emails for backfill/testing).
 2. Triage agent decides:
    - `IGNORE`
    - `REPLY`
@@ -230,6 +230,7 @@ Runtime:
 
 - `LOG_LEVEL`
 - `MAX_EMAILS_PER_RUN`
+- `MAX_EMAIL_AGE_HOURS` (default `12`; only process emails newer than this age, set `0` to disable)
 - `INCLUDE_READ_INBOX_EMAILS` (`false` by default; set `true` for backfill/testing)
 - `INBOX_SUBJECT_CONTAINS` (optional subject filter; useful with include-read mode)
 - `STRESS_TEST_TO_EMAIL` (optional default recipient for `scripts.send_stress_test_emails`)

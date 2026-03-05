@@ -354,6 +354,7 @@ def run_triage_and_print(max_results: int = 10) -> list[dict[str, Any]]:
         exclude_label_names=exclude_labels,
         include_read_inbox=config.include_read_inbox_emails,
         subject_contains=config.inbox_subject_contains,
+        max_age_hours=config.max_email_age_hours,
     )
     if not emails:
         LOGGER.info("Triage results (0 emails):")

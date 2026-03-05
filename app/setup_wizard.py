@@ -59,6 +59,7 @@ def build_env_lines() -> list[str]:
     token_file = ask("GOOGLE_TOKEN_FILE", "token.json")
     log_level = ask("LOG_LEVEL", "INFO")
     max_emails = ask("MAX_EMAILS_PER_RUN", "10")
+    max_email_age_hours = ask("MAX_EMAIL_AGE_HOURS (0 disables age filter)", "12")
     include_read_inbox = ask_bool("INCLUDE_READ_INBOX_EMAILS", False)
     inbox_subject_contains = ask(
         "INBOX_SUBJECT_CONTAINS (optional; helps limit backfill scope)",
@@ -103,6 +104,7 @@ def build_env_lines() -> list[str]:
         "# Runtime",
         f'LOG_LEVEL="{log_level}"',
         f'MAX_EMAILS_PER_RUN="{max_emails}"',
+        f'MAX_EMAIL_AGE_HOURS="{max_email_age_hours}"',
         f'INCLUDE_READ_INBOX_EMAILS="{"true" if include_read_inbox else "false"}"',
         f'INBOX_SUBJECT_CONTAINS="{inbox_subject_contains}"',
         "",

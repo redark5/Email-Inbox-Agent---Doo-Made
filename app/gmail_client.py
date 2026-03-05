@@ -4,6 +4,7 @@ import base64
 import json
 import logging
 import unicodedata
+from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from email.utils import parseaddr
 from typing import Any
@@ -146,6 +147,7 @@ def fetch_unread_emails(
     exclude_label_names: list[str] | None = None,
     include_read_inbox: bool = False,
     subject_contains: str | None = None,
+    max_age_hours: int = 0,
 ) -> list[dict[str, str]]:
     service = get_gmail_service()
     try:
@@ -173,6 +175,10 @@ def fetch_unread_emails(
             sanitized_subject = subject_contains.strip().replace('"', "")
             query_parts.append(f'subject:"{sanitized_subject}"')
 
+        if max_age_hours > 0:
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
+            query_parts.append(f"after:{int(cutoff.timestamp())}")
+
         if query_parts:
             list_kwargs["q"] = " ".join(query_parts)
 
@@ -197,7 +203,8 @@ def fetch_unread_emails(
             )
 
         mode = "inbox+read" if include_read_inbox else "unread-only"
-        LOGGER.info("Fetched %s inbox email(s) | mode=%s.", len(emails), mode)
+        age_filter = f"{max_age_hours}h" if max_age_hours > 0 else "disabled"
+        LOGGER.info("Fetched %s inbox email(s) | mode=%s | age_filter=%s.", len(emails), mode, age_filter)
         return emails
     except HttpError as exc:
         LOGGER.exception("Failed to fetch unread emails from Gmail API.")
