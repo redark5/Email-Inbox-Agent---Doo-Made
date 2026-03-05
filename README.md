@@ -38,6 +38,12 @@ Each run (`python -m app.main`) does this:
 |- pyproject.toml
 |- requirements.txt
 |- .env.example
+|- scripts/
+|  |- first_run_windows.ps1
+|  |- run_windows.ps1
+|  |- first_run_mac.sh
+|  |- run_mac.sh
+|  `- send_stress_test_emails.py
 `- app/
    |- __init__.py
    |- agents.py
@@ -61,42 +67,26 @@ Each run (`python -m app.main`) does this:
 
 ## Setup (Step-by-Step)
 
-### 1) Create venv and install
+### 0) If the user is not technical
 
-Windows PowerShell:
+Use the first-run scripts. They handle `venv`, dependency install, and setup wizard automatically.
+
+Windows:
 
 ```powershell
-py -3 -m venv .venv
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+.\scripts\first_run_windows.ps1
 ```
 
 macOS/Linux:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+bash scripts/first_run_mac.sh
 ```
 
-### 2) Generate `.env` interactively
+If Python is not installed, the script prints a direct install link and exits cleanly.
 
-```bash
-python -m app.setup_wizard
-```
-
-The wizard asks up front for:
-
-- OS/environment
-- model backend (`ollama` / `openai` / custom endpoint)
-- model names
-- suspicious confidence rules
-- trusted sender domains/emails
-- Gmail file paths
-- label mapping for your existing labels (including `Action Required` overlay label)
-
-### 3) Add Gmail OAuth file
+### 1) Add Gmail OAuth file
 
 Place OAuth client JSON in project root as `credentials.json`.
 
@@ -109,7 +99,23 @@ Google Cloud quick path:
 5. Create OAuth Client ID of type **Desktop app**
 6. Download JSON as `credentials.json`
 
-### 4) Run the app
+### 2) Run the app
+
+After first-run setup:
+
+Windows:
+
+```powershell
+.\scripts\run_windows.ps1
+```
+
+macOS/Linux:
+
+```bash
+bash scripts/run_mac.sh
+```
+
+Manual alternative (if preferred):
 
 ```bash
 python -m app.main
