@@ -34,40 +34,22 @@ class TriageDecision(BaseModel):
     reason: str = Field(description="Short explanation for the decision.")
 
 
-def build_triage_agent() -> Agent[TriageDecision]:
+def build_triage_agent() -> Agent[str]:
     config = load_config()
-    return Agent[TriageDecision](
+    return Agent[str](
         name="EmailTriageAgent",
         model=config.openai_model_triage,
         instructions=(
-            "You are an email triage specialist for productivity workflows.\n\n"
-            "You will receive exactly one email.\n\n"
-            "Assign exactly one action:\n"
-            "- IGNORE: no response needed.\n"
-            "- REPLY: user should respond and we will draft a reply.\n"
-            "- SUSPICIOUS: possible phishing/risky message; user must manually verify.\n\n"
-            "Assign exactly one category:\n"
-            "- PERSONAL_DIRECT\n"
-            "- FINANCE\n"
-            "- SALES_OUTREACH\n"
-            "- EVENTS_CALENDAR\n"
-            "- NEWSLETTERS\n"
-            "- SECURITY_ADMIN\n"
-            "- PROFESSIONAL_NETWORK\n"
-            "- RECEIPTS_BILLING\n"
-            "- SAAS_TOOLS\n\n"
-            "Rules:\n"
-            "- If action is SUSPICIOUS, category should usually be SECURITY_ADMIN.\n"
-            "- If action is REPLY, category should typically be ACTION_REQUIRED, EVENTS_CALENDAR, "
-            "PERSONAL_DIRECT, PROFESSIONAL_NETWORK, or SALES_OUTREACH.\n"
-            "- Include confidence in [0.0, 1.0].\n"
-            "- If action is SUSPICIOUS, provide suspicious_signals with concrete evidence (prefer >=2 items).\n\n"
-            "Output JSON exactly with:\n"
-            "{ \"action\": \"...\", \"category\": \"...\", \"confidence\": 0.0-1.0, "
-            "\"suspicious_signals\": [\"...\"], \"reason\": \"...\" }\n"
-            "Keep reason concise (one sentence max)."
+            "You are an email triage assistant.\n\n"
+            "Classify the email with action and category. Reply with JSON only, no extra text.\n\n"
+            "Actions: IGNORE, REPLY, SUSPICIOUS\n"
+            "Categories: PERSONAL_DIRECT, FINANCE, SALES_OUTREACH, EVENTS_CALENDAR, "
+            "NEWSLETTERS, SECURITY_ADMIN, PROFESSIONAL_NETWORK, RECEIPTS_BILLING, SAAS_TOOLS\n\n"
+            "Output format:\n"
+            "{\"action\": \"REPLY\", \"category\": \"PERSONAL_DIRECT\", "
+            "\"confidence\": 0.9, \"suspicious_signals\": [], \"reason\": \"short reason\"}"
         ),
-        output_type=TriageDecision,
+        output_type=str,
     )
 
 
@@ -81,9 +63,7 @@ def build_draft_agent() -> Agent[str]:
             "Given the original email details, write a short, clear, polite reply in plain text.\n"
             "Return only the reply body text.\n"
             "Do not include quoted original message.\n"
-            "Do not include markdown.\n"
-            "Do not call tools unless the user explicitly asks you to save a draft."
+            "Do not include markdown."
         ),
-        tools=[save_reply_draft_tool],
         output_type=str,
     )
