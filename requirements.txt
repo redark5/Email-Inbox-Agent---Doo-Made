@@ -1,7 +1,5 @@
 openai>=1.0.0
 openai-agents>=0.2.0
-google-api-python-client>=2.0.0
-google-auth-httplib2>=0.2.0
-google-auth-oauthlib>=1.2.0
+pywin32>=306
 python-dotenv>=1.0.0
 pydantic>=2.0.0

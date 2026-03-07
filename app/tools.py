@@ -5,7 +5,7 @@ import logging
 
 from agents import function_tool
 
-from app.gmail_client import fetch_unread_emails, save_draft_reply
+from app.outlook_client import fetch_unread_emails, save_draft_reply
 
 
 LOGGER = logging.getLogger(__name__)

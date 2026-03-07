@@ -9,7 +9,7 @@ from agents import Runner
 
 from app.agents import TriageDecision, build_draft_agent, build_triage_agent
 from app.config import Config, load_config
-from app.gmail_client import (
+from app.outlook_client import (
     add_label_to_message,
     apply_action_label,
     fetch_unread_emails,
@@ -418,6 +418,11 @@ def run_triage_and_print(max_results: int = 10) -> list[dict[str, Any]]:
         )
         category = _normalize_topic_category(category, action, email)
 
+        # Flagged emails are always forced to REPLY
+        if config.flagged_only:
+            action = "REPLY"
+            reason = f"Flagged for follow-up; reply enforced. {reason}".strip()
+
         triage_results.append(
             {
                 "id": email_id,
@@ -480,10 +485,13 @@ def run_drafting_for_replies(triage_results: list[dict[str, Any]]) -> None:
         try:
             email_data = get_email_by_id(message_id)
             prompt = (
-                "Write a short professional reply for this message.\n\n"
+                "You are replying to an email thread. Read the FULL thread below carefully "
+                "to understand the complete context before writing your reply.\n\n"
                 f"From: {email_data.get('from', '')}\n"
-                f"Subject: {email_data.get('subject', '')}\n"
-                f"Body:\n{email_data.get('body', '')}\n"
+                f"Subject: {email_data.get('subject', '')}\n\n"
+                f"--- Full Thread ---\n{email_data.get('body', '')}\n--- End Thread ---\n\n"
+                "Write a short professional reply that directly addresses the latest message "
+                "while being aware of the full conversation history above."
             )
             result = Runner.run_sync(draft_agent, prompt)
             reply_text = str(result.final_output).strip()

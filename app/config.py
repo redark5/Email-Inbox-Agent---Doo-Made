@@ -39,8 +39,8 @@ class Config:
     label_receipts_billing: str
     label_saas_tools: str
 
-    google_credentials_file: Path
-    google_token_file: Path
+    email_address: str
+    flagged_only: bool
     log_level: str
     max_emails_per_run: int
     max_email_age_hours: int
@@ -115,8 +115,8 @@ def load_config() -> Config:
     label_receipts_billing = os.getenv("LABEL_RECEIPTS_BILLING", "Receipts & Billing").strip()
     label_saas_tools = os.getenv("LABEL_SAAS_TOOLS", os.getenv("LABEL_SALES_TOOLS", "SaaS & Tools")).strip()
 
-    google_credentials_file = PROJECT_ROOT / os.getenv("GOOGLE_CREDENTIALS_FILE", "credentials.json")
-    google_token_file = PROJECT_ROOT / os.getenv("GOOGLE_TOKEN_FILE", "token.json")
+    email_address = os.getenv("EMAIL_ADDRESS", "").strip()
+    flagged_only = _as_bool(os.getenv("FLAGGED_ONLY", "false"), default=False)
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
     max_emails_per_run = _as_int(os.getenv("MAX_EMAILS_PER_RUN", "10"), default=10)
     max_email_age_hours = max(0, _as_int(os.getenv("MAX_EMAIL_AGE_HOURS", "12"), default=12))
@@ -148,8 +148,8 @@ def load_config() -> Config:
         label_professional_network=label_professional_network,
         label_receipts_billing=label_receipts_billing,
         label_saas_tools=label_saas_tools,
-        google_credentials_file=google_credentials_file,
-        google_token_file=google_token_file,
+        email_address=email_address,
+        flagged_only=flagged_only,
         log_level=log_level,
         max_emails_per_run=max_emails_per_run,
         max_email_age_hours=max_email_age_hours,
