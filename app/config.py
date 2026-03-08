@@ -15,6 +15,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 @dataclass(frozen=True)
 class Config:
+    llm_provider: str        # "ollama" or "openai"
     openai_api_key: str
     openai_base_url: str
     openai_model_triage: str
@@ -38,6 +39,11 @@ class Config:
     label_professional_network: str
     label_receipts_billing: str
     label_saas_tools: str
+
+    user_name: str
+    user_title: str
+    user_expertise: str
+    user_context: str
 
     email_address: str
     flagged_only: bool
@@ -83,10 +89,19 @@ def _split_csv(value: str | None) -> tuple[str, ...]:
 def load_config() -> Config:
     load_dotenv(override=False)
 
-    openai_api_key = os.getenv("OPENAI_API_KEY", "").strip()
-    openai_base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").strip()
-    openai_model_triage = os.getenv("OPENAI_MODEL_TRIAGE", "gpt-4.1-mini").strip()
-    openai_model_draft = os.getenv("OPENAI_MODEL_DRAFT", "gpt-4.1-mini").strip()
+    llm_provider = os.getenv("LLM_PROVIDER", "ollama").strip().lower()
+
+    if llm_provider == "openai":
+        openai_api_key = os.getenv("OPENAI_API_KEY", "").strip()
+        openai_base_url = "https://api.openai.com/v1"
+        openai_model_triage = os.getenv("OPENAI_MODEL_TRIAGE", "gpt-4o-mini").strip()
+        openai_model_draft = os.getenv("OPENAI_MODEL_DRAFT", "gpt-4o-mini").strip()
+    else:  # ollama
+        openai_api_key = "ollama"
+        openai_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1").strip()
+        openai_model_triage = os.getenv("OLLAMA_MODEL_TRIAGE", "llama3:8b").strip()
+        openai_model_draft = os.getenv("OLLAMA_MODEL_DRAFT", "llama3:8b").strip()
+
     openai_agents_disable_tracing = _as_bool(
         os.getenv("OPENAI_AGENTS_DISABLE_TRACING", "true"),
         default=True,
@@ -115,6 +130,11 @@ def load_config() -> Config:
     label_receipts_billing = os.getenv("LABEL_RECEIPTS_BILLING", "Receipts & Billing").strip()
     label_saas_tools = os.getenv("LABEL_SAAS_TOOLS", os.getenv("LABEL_SALES_TOOLS", "SaaS & Tools")).strip()
 
+    user_name = os.getenv("USER_NAME", "").strip()
+    user_title = os.getenv("USER_TITLE", "").strip()
+    user_expertise = os.getenv("USER_EXPERTISE", "").strip()
+    user_context = os.getenv("USER_CONTEXT", "").strip()
+
     email_address = os.getenv("EMAIL_ADDRESS", "").strip()
     flagged_only = _as_bool(os.getenv("FLAGGED_ONLY", "false"), default=False)
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -127,6 +147,7 @@ def load_config() -> Config:
     inbox_subject_contains = os.getenv("INBOX_SUBJECT_CONTAINS", "").strip()
 
     return Config(
+        llm_provider=llm_provider,
         openai_api_key=openai_api_key,
         openai_base_url=openai_base_url,
         openai_model_triage=openai_model_triage,
@@ -148,6 +169,10 @@ def load_config() -> Config:
         label_professional_network=label_professional_network,
         label_receipts_billing=label_receipts_billing,
         label_saas_tools=label_saas_tools,
+        user_name=user_name,
+        user_title=user_title,
+        user_expertise=user_expertise,
+        user_context=user_context,
         email_address=email_address,
         flagged_only=flagged_only,
         log_level=log_level,
@@ -169,6 +194,17 @@ def setup_logging(level: str) -> None:
 def configure_openai_client(config: Config) -> None:
     if not config.openai_api_key:
         raise ValueError("OPENAI_API_KEY is required.")
+
+    logger = logging.getLogger(__name__)
+    key_preview = config.openai_api_key[:8] + "..." if len(config.openai_api_key) > 8 else config.openai_api_key
+    logger.info(
+        "LLM provider=%s | base_url=%s | triage_model=%s | draft_model=%s | key=%s",
+        config.llm_provider,
+        config.openai_base_url,
+        config.openai_model_triage,
+        config.openai_model_draft,
+        key_preview,
+    )
 
     set_tracing_disabled(config.openai_agents_disable_tracing)
     set_default_openai_key(config.openai_api_key, use_for_tracing=False)

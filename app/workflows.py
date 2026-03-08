@@ -360,6 +360,16 @@ def run_triage_and_print(max_results: int = 10) -> list[dict[str, Any]]:
         LOGGER.info("Triage results (0 emails):")
         return []
 
+    # Fast path: when flagged-only + no labeling, every email is REPLY — skip LLM triage
+    if config.flagged_only and not config.category_labeling_enabled:
+        results = [
+            {"id": e["id"], "action": "REPLY", "category": "", "confidence": 1.0,
+             "suspicious_signals": [], "reason": "Flagged for follow-up; reply enforced."}
+            for e in emails if e.get("id")
+        ]
+        LOGGER.info("Triage skipped (flagged-only + no labeling). %s email(s) → REPLY.", len(results))
+        return results
+
     triage_agent = build_triage_agent()
     triage_results: list[dict[str, Any]] = []
 
